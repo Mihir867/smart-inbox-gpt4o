@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import { useSession, signIn, signOut } from "next-auth/react";
 import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
@@ -21,24 +20,22 @@ const LoginForm = () => {
   }, [session]);
 
   const fetchEmails = async () => {
-    
+    try {
       const res = await fetch("/api/gmail");
-      console.log(res);
-  
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Unexpected content type: " + contentType);
       }
-  
       const data = await res.json();
       if (res.ok) {
         setEmails(data.emails);
       } else {
-        console.error("Error getting emails:", data.error);
+        console.error("Error letting emails:", data.error);
       }
-    
+    } catch (error) {
+      console.error("Error lol emails:", error);
+    }
   };
-  
 
   const handleApiKeyChange = (event:any) => {
     const newApiKey = event.target.value;

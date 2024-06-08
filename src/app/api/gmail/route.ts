@@ -1,41 +1,46 @@
 import { google } from "googleapis";
 import { getSession } from "next-auth/react";
 import type { NextApiRequest, NextApiResponse } from 'next';
-import axios from "axios";
-import { NextRequest, NextResponse } from "next/server";
 
-async function getEmails(req:NextRequest, res:NextResponse) {
- 
-    const session = await getSession();
-    console.log(session);
-
-    
+async function getEmails(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const session = await getSession({ req });
+    console.log(session)
+    if (!session) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     const accessToken = session.accessToken as string | undefined;
-    console.log(accessToken);
-
-    
+   
+    if (!accessToken) {
+      return res.status(401).json({ error: "No access token found" });
+    }
 
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({ access_token: accessToken });
 
-    const url = `https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=100`;
-    const config = createConfig(url, accessToken);
-    const response = await axios(config);
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
 
-    res.json(response.data);
- 
+    const response = await gmail.users.messages.list({
+      userId: "me",
+      maxResults: 100, 
+    });
+
+    const messages = response.data.messages || [];
+
+    const emails = await Promise.all(
+      messages.map(async (message) => {
+        const msg = await gmail.users.messages.get({
+          userId: "me",
+          id: message.id as string,
+        });
+        return msg.data;
+      })
+    );
+
+    res.status(200).json({ emails });
+  } catch (error) {
+    console.error("Error fetching emails:", error);
+    res.status(500).json({ error: "Error fetching emails" });
+  }
 }
-
-const createConfig = (url:any, accessToken:any) => {
-  return {
-    method: 'get',
-    url: url,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-type': 'application/json',
-    },
-  };
-};
-
-export default getEmails;
