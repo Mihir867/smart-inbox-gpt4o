@@ -1,25 +1,103 @@
-// pages/index.js
-"use client"
+"use client";
+import { useSession, signIn, signOut } from "next-auth/react";
+import React, { useState, useEffect } from "react";
+import { FcGoogle } from "react-icons/fc";
 
-import Head from 'next/head';
+const LoginForm = () => {
+  const { data: session, status } = useSession();
+  const [apiKey, setApiKey] = useState("");
+  const [emails, setEmails] = useState([]);
 
-export default function Home() {
+  useEffect(() => {
+    if (session && session.user) {
+      localStorage.setItem("user_name", session.user.name || "");
+      localStorage.setItem("user_email", session.user.email || "");
+      console.log("User name:", session.user.name);
+      console.log("User email:", session.user.email);
+
+      fetchEmails();
+    }
+  }, [session]);
+
+  const fetchEmails = async () => {
+    try {
+      const res = await fetch("/api/gmail");
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Unexpected content type: " + contentType);
+      }
+      const data = await res.json();
+      if (res.ok) {
+        setEmails(data.emails);
+      } else {
+        console.error("Error fetching emails:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching emails:", error);
+    }
+  };
+
+  const handleApiKeyChange = (event) => {
+    const newApiKey = event.target.value;
+    setApiKey(newApiKey);
+    localStorage.setItem("openai_api_key", newApiKey);
+    console.log("OpenAI API Key:", newApiKey);
+  };
+
+  if (status === "authenticated") {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="space-y-4 w-full max-w-md px-4">
+          <p>Name: {session.user.name}</p>
+          <p>Email: {session.user.email}</p>
+          <img src={session.user.image} alt="Profile Picture" className="rounded-full w-16 h-16" />
+          <button
+            className="flex items-center justify-center w-full px-6 py-3 text-white bg-red-600 border-2 border-red-600 rounded-md hover:bg-red-700 transition"
+            onClick={() => signOut()}
+          >
+            Logout
+          </button>
+          <div className="mt-4">
+            <h2 className="text-lg font-bold">Emails:</h2>
+            <ul>
+              {emails.map((email) => (
+                <li key={email.id} className="mb-2">
+                  <p><strong>From:</strong> {email.payload.headers.find(header => header.name === "From")?.value}</p>
+                  <p><strong>Subject:</strong> {email.payload.headers.find(header => header.name === "Subject")?.value}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-black">
-     
-      <button
-        className="bg-gray-400 text-black font-bold py-3 px-6 rounded-lg shadow flex items-center space-x-2 hover:bg-gray-100 focus:outline-none"
-        onClick={() => alert('Google Auth')}
-      >
-        <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-          <path fill="#4285F4" d="M24 9.5c3.9 0 6.6 1.6 8.1 2.9l5.9-5.7C34.2 3.5 29.7 2 24 2 14.9 2 7.3 7.7 4.4 15.3l6.9 5.4C12.8 14.2 17.9 9.5 24 9.5z"/>
-          <path fill="#34A853" d="M46.6 24.5c0-1.7-.1-3.3-.4-4.9H24v9.3h12.9c-.6 3.2-2.6 5.9-5.5 7.7l6.8 5.2c4-3.7 6.4-9.1 6.4-15.3z"/>
-          <path fill="#FBBC05" d="M10.7 29.7c-1.2-.4-2.2-1-3.1-1.7l-6.8 5.2c3.3 5.1 8.7 8.7 15 8.7 5.6 0 10.3-1.8 13.8-4.8l-6.8-5.2c-2 1.4-4.5 2.3-7 2.3-4.5 0-8.3-2.9-9.6-6.7z"/>
-          <path fill="#EA4335" d="M24 46c6 0 11-2 14.7-5.3l-6.8-5.2c-2.5 1.7-5.5 2.7-8.8 2.7-6.4 0-11.8-4.2-13.7-9.9l-6.8 5.2C6.6 41.6 14.6 46 24 46z"/>
-          <path fill="none" d="M2 2h44v44H2z"/>
-        </svg>
-        <span>Sign in with Google</span>
-      </button>
+      <div className="space-y-4 w-full max-w-md px-4">
+        <button
+          className="flex items-center justify-center w-full px-6 py-3 text-white bg-transparent border-2 border-white rounded-md hover:bg-white hover:text-black transition"
+          onClick={() => signIn("google")}
+        >
+          <FcGoogle className="w-6 h-6 mr-2" />
+          Login with Google
+        </button>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Enter OpenAI API Key"
+            className="w-full px-6 py-3 text-white bg-transparent border-2 border-white rounded-md placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
+            value={apiKey}
+            onChange={handleApiKeyChange}
+          />
+        </div>
+        <p className="mt-2 text-sm text-gray-400">
+          Make sure to only login once the API key is entered
+        </p>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default LoginForm;
