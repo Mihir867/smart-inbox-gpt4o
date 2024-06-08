@@ -1,4 +1,4 @@
-// File: /Users/mac/Desktop/smart-inbox-gpt4o/src/app/api/auth/[...nextauth]/route.ts
+// File: C:\Users\Dev\Desktop\starter\smart-inbox-gpt4o\src\app\api\auth\[...nextauth]\route.ts
 import * as entry from '../../../../../../src/app/api/auth/[...nextauth]/route.js'
 import type { NextRequest } from 'next/server.js'
 

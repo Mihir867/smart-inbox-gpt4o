@@ -1,4 +1,5 @@
 "use client";
+import axios from "axios";
 import { useSession, signIn, signOut } from "next-auth/react";
 import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
@@ -20,24 +21,26 @@ const LoginForm = () => {
   }, [session]);
 
   const fetchEmails = async () => {
-    try {
+    
       const res = await fetch("/api/gmail");
+      console.log(res);
+  
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Unexpected content type: " + contentType);
       }
+  
       const data = await res.json();
       if (res.ok) {
         setEmails(data.emails);
       } else {
-        console.error("Error fetching emails:", data.error);
+        console.error("Error getting emails:", data.error);
       }
-    } catch (error) {
-      console.error("Error fetching emails:", error);
-    }
+    
   };
+  
 
-  const handleApiKeyChange = (event) => {
+  const handleApiKeyChange = (event:any) => {
     const newApiKey = event.target.value;
     setApiKey(newApiKey);
     localStorage.setItem("openai_api_key", newApiKey);
@@ -57,7 +60,7 @@ const LoginForm = () => {
           >
             Logout
           </button>
-          <div className="mt-4">
+          <div className="mt-4">  
             <h2 className="text-lg font-bold">Emails:</h2>
             <ul>
               {emails.map((email) => (
