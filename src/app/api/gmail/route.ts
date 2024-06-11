@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const response = await gmail.users.messages.list({
       userId: 'me',
-      maxResults: 20,
+      maxResults: 50,
     });
 
     const messages = await Promise.all(response.data.messages!.map(async (message) => {

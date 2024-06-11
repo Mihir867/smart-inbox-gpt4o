@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { NextRequest, NextResponse } from "next/server";
 
 const handler = NextAuth({
   providers: [

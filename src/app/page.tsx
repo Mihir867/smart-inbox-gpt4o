@@ -56,30 +56,36 @@ const Page: React.FC = () => {
 
   if (status === 'authenticated') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <div className="space-y-4 w-full max-w-md px-4">
-          <p>Name: {session.user.name}</p>
-          <p>Email: {session.user.email}</p>
-          <img src={session.user.image || ''} alt="Profile Picture" className="rounded-full w-16 h-16" />
-          <button
-            className="flex items-center justify-center w-full px-6 py-3 text-white bg-red-600 border-2 border-red-600 rounded-md hover:bg-red-700 transition"
-            onClick={() => signOut()}
-          >
-            Logout
-          </button>
-          <div className="mt-4">
-            <h2 className="text-lg font-bold">Emails:</h2>
-            <ul>
-              {emails.map((email) => (
-                <li key={email.id} className="mb-2">
-                  <p><strong>From:</strong> {email.payload.headers.find(header => header.name === 'From')?.value}</p>
-                  <p><strong>Subject:</strong> {email.payload.headers.find(header => header.name === 'Subject')?.value}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-black text-white p-4">
+  <div className="space-y-6 w-full max-w-xl bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div className="flex items-center space-x-4">
+      <img src={session.user.image || ''} alt="Profile Picture" className="rounded-full w-16 h-16" />
+      <div>
+        <p className="text-xl font-semibold">{session.user.name}</p>
+        <p className="text-gray-400">{session.user.email}</p>
       </div>
+    </div>
+    <button
+      className="flex items-center justify-center w-full px-6 py-3 text-white bg-red-600 border-2 border-red-600 rounded-md hover:bg-red-700 transition"
+      onClick={() => signOut()}
+    >
+      Logout
+    </button>
+    <div className="mt-4">
+      <h2 className="text-lg font-bold">Emails:</h2>
+      <ul className="space-y-4">
+        {emails.map((email) => (
+          <li key={email.id} className="p-4 border-b-2 border-gray-700">
+            <p><strong>From:</strong> {email.payload.headers.find(header => header.name === 'From')?.value}</p>
+            <p><strong>Subject:</strong> {email.payload.headers.find(header => header.name === 'Subject')?.value}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</div>
+
+
     );
   }
 
